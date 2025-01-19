@@ -1,0 +1,263 @@
+trying
+.include TSMC_180nm.txt
+.param SUPPLY=1.8
+.param LAMBDA=0.09u
+
+vdd vdd gnd DC 1.8
+
+.subckt nmos d g s b W='N'
+.param width_N={W}
+M1 d g s b CMOSN W={width_N} L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N}
++ AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+.ends nmos
+
+.subckt pmos d g s b W='P'
+.param width_P={W}
+M1 d g s b CMOSP W={width_P} L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P}
++ AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends pmos
+
+.subckt inv out in vdd gnd N='a'
+.param width_N={N}
+.param width_P={2*width_N}
+M1      out       in      gnd     gnd  CMOSN   W={width_N}   L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N} AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+M2      out       in      vdd     vdd  CMOSP   W={width_P}   L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P} AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends inv
+
+
+* .subckt and out a b clk vdd gnd
+* X1 m13 a vdd vdd pmos W='20*LAMBDA'
+* X2 m13 b vdd vdd pmos W='20*LAMBDA'
+* X3 m34 clk m13 m13 pmos W='20*LAMBDA'
+* X4 m34 a m45 m45 nmos W='10*LAMBDA'
+* X5 m45 b gnd gnd nmos W='10*LAMBDA'
+
+* X6 m67 m34 vdd vdd pmos W='20*LAMBDA'
+* X7 m78 clk m67 m67 pmos W='20*LAMBDA'
+* X8 m78 m34 gnd gnd nmos W='10*LAMBDA'
+
+* X9 m910 m78 vdd vdd pmos W='20*LAMBDA'
+* X10 m910 clk m1011 m1011 nmos W='10*LAMBDA'
+* X11 m1011 m78 gnd gnd nmos W='10*LAMBDA'
+
+* X12 out m910 vdd vdd pmos W='20*LAMBDA'
+* X13 out clk m1314 m1314 nmos W='10*LAMBDA'
+* X14 m1314 m910 gnd gnd nmos W='10*LAMBDA'
+* .ends and
+
+* .subckt xor out a b clk vdd gnd
+* Xabar abar a vdd gnd inv N='10*LAMBDA'
+* Xbbar bbar b vdd gnd inv N='10*LAMBDA'
+
+* X1 n12 abar vdd vdd pmos W='20*LAMBDA'
+* X2 n23 bbar n12 n12 pmos W='20*LAMBDA'
+* X3 n67 a vdd vdd pmos W='20*LAMBDA'
+* X4 n23 b n67 n67 pmos W='20*LAMBDA'
+* X5 n34 clk n23 n23 pmos W='20*LAMBDA'
+* X6 n34 abar n45 n45 nmos W='10*LAMBDA'
+* X7 n45 b gnd gnd nmos W='10*LAMBDA'
+* X8 n34 a n89 n89 nmos W='10*LAMBDA'
+* X9 n89 bbar gnd gnd nmos W='10*LAMBDA'
+
+* X10 m67 n34 vdd vdd pmos W='20*LAMBDA'
+* X11 m78 clk m67 m67 pmos W='20*LAMBDA'
+* X12 m78 n34 gnd gnd nmos W='10*LAMBDA'
+
+* X13 m910 m78 vdd vdd pmos W='20*LAMBDA'
+* X14 m910 clk m1011 m1011 nmos W='10*LAMBDA'
+* X15 m1011 m78 gnd gnd nmos W='10*LAMBDA'
+
+* X16 out m910 vdd vdd pmos W='20*LAMBDA'
+* X17 out clk m1314 m1314 nmos W='10*LAMBDA'
+* X18 m1314 m910 gnd gnd nmos W='10*LAMBDA'
+* .ends xor
+
+.subckt dff out d clk vdd gnd
+x1 m23 d vdd vdd pmos W='20*LAMBDA'
+x2 m12 clk m23 m23 pmos W='20*LAMBDA'
+x3 m12 d gnd gnd nmos W='10*LAMBDA'
+
+x4 m56 clk vdd vdd pmos W='20*LAMBDA'
+x5 m56 m12 m45 m45 nmos W='10*LAMBDA'
+x6 m45 clk gnd gnd nmos W='10*LAMBDA'
+
+x7 m89 m56 vdd vdd pmos W='20*LAMBDA'
+x8 m89 clk m78 m78 nmos W='10*LAMBDA'
+x9 m78 m56 gnd gnd nmos W='10*LAMBDA'
+
+x10 out m89 vdd gnd inv N='10*LAMBDA'
+.ends dff
+
+x1 c3bar clk vdd vdd pmos W=0.9u
+x2 c3bar p3 m23 m23 nmos  W=0.9u
+x3 m23 p2 m34 m34 nmos    W=0.9u
+x4 m34 p1 m45 m45 nmos    W=0.9u
+x5 m45 p0 m56 m56 nmos    W=0.9u
+x6 m56 cin m67 m67 nmos   W=0.9u
+x7 m67 clk gnd gnd nmos   W=0.9u
+x8 m45 g0 m67 m67 nmos    W=0.9u
+x9 m34 g1 m67 m67 nmos    W=0.9u
+x10 m23 g2 m67 m67 nmos   W=0.9u
+x11 c3bar g3 m67 m67 nmos W=0.9u
+
+x12 c2bar clk vdd vdd pmos W=0.9u
+x13 c2bar p2 n34 n34 nmos  W=0.9u
+x14 n34 p1 n45 n45 nmos    W=0.9u
+x15 n45 p0 n56 n56 nmos    W=0.9u
+x16 n56 cin n67 n67 nmos   W=0.9u
+x17 n67 clk gnd gnd nmos   W=0.9u
+x18 n45 g0 n67 n67 nmos    W=0.9u
+x19 n34 g1 n67 n67 nmos    W=0.9u
+x20 c2bar g2 n67 n67 nmos  W=0.9u
+
+x21 c1bar clk vdd vdd pmos W=0.9u
+x22 c1bar p1 o45 o45 nmos  W=0.9u
+x23 o45 p0 o56 o56 nmos    W=0.9u
+x24 o56 cin o67 o67 nmos   W=0.9u
+x25 o67 clk gnd gnd nmos   W=0.9u
+x26 o45 g0 o67 o67 nmos    W=0.9u
+x27 c1bar g1 o67 o67 nmos  W=0.9u
+
+x28 c0bar clk vdd vdd pmos W=0.9u
+x29 c0bar p0 p56 p56 nmos  W=0.9u
+x30 p56 cin p67 p67 nmos   W=0.9u
+x31 p67 clk gnd gnd nmos   W=0.9u
+x33 c0bar g0 p67 p67 nmos  W=0.9u
+
+x34 c0 c0bar vdd gnd inv N='10*LAMBDA'
+x35 c1 c1bar vdd gnd inv N='10*LAMBDA'
+x36 c2 c2bar vdd gnd inv N='10*LAMBDA'
+x37 c3 c3bar vdd gnd inv N='10*LAMBDA'
+
+x39 c0bar c0 vdd vdd pmos W=0.9u
+x40 c1bar c1 vdd vdd pmos W=0.9u
+x41 c2bar c2 vdd vdd pmos W=0.9u
+x42 c3bar c3 vdd vdd pmos W=0.9u
+ 
+.param Ton = 5000n
+
+* V1 p0 0 0
+* * V1 p0 0 1.8
+
+* v2 p1 0 0
+* * v2 p1 0 1.8
+
+* v3 p2 0 0
+* * v3 p2 0 1.8
+
+* * v4 p3 0 0
+* v4 p3 0 1.8
+
+* V5 g0 0 0
+* * V5 g0 0 1.8
+
+* v6 g1 0 0
+* * v6 g1 0 1.8
+
+* * v7 g2 0 0
+* v7 g2 0 1.8
+
+* v8 g3 0 0
+* * v8 g3 0 1.8
+
+* V9 carry_0 0 1.8
+* V10 clk_org gnd pulse(0 1.8 0 0 0 {Ton} {2*Ton})  
+
+V1 a0in 0 pulse(0 1.8 0 0 0 {2*Ton} {4*Ton})
+v2 a1in 0 pulse(0 1.8 0 0 0 {3*Ton} {6*Ton})
+v3 a2in 0 pulse(0 1.8 0 0 0 {4*Ton} {8*Ton})
+v4 a3in 0 pulse(0 1.8 0 0 0 {5*Ton} {10*Ton})
+
+V5 b0in 0 pulse(0 1.8 0 0 0 {6*Ton} {12*Ton})
+v6 b1in 0 pulse(0 1.8 0 0 0 {7*Ton} {14*Ton})
+v7 b2in 0 pulse(0 1.8 0 0 0 {8*Ton} {16*Ton})
+v8 b3in 0 pulse(0 1.8 0 0 0 {9*Ton} {18*Ton})
+
+V9 cin 0 1.8
+V10 clk_org gnd pulse(0 1.8 0 0 0 {Ton} {2*Ton})  
+
+x43 a0 a0in clk_org vdd gnd dff
+x44 a1 a1in clk_org vdd gnd dff
+x45 a2 a2in clk_org vdd gnd dff
+x46 a3 a3in clk_org vdd gnd dff
+
+x47 b0 b0in clk_org vdd gnd dff
+x48 b1 b1in clk_org vdd gnd dff
+x49 b2 b2in clk_org vdd gnd dff
+x50 b3 b3in clk_org vdd gnd dff
+
+* x43 g0 a0 b0 clk_org vdd gnd and
+* x44 g1 a1 b1 clk_org vdd gnd and
+* x45 g2 a2 b2 clk_org vdd gnd and
+* x46 g3 a3 b3 clk_org vdd gnd and
+
+* x47 p0 a0 b0 clk_org vdd gnd xor
+* x48 p1 a1 b1 clk_org vdd gnd xor
+* x49 p2 a2 b2 clk_org vdd gnd xor
+* x50 p3 a3 b3 clk_org vdd gnd xor
+
+* x51 g00  g00 vdd gnd inv N='10*LAMBDA'
+* x52 g100 g10  vdd gnd inv N='10*LAMBDA'
+* x53 g200 g20  vdd gnd inv N='10*LAMBDA'
+* x54 g300 g30  vdd gnd inv N='10*LAMBDA'
+
+* x55 g0  g00  vdd gnd inv N='10*LAMBDA'
+* x56 g1 g100  vdd gnd inv N='10*LAMBDA'
+* x57 g2 g200  vdd gnd inv N='10*LAMBDA'
+* x58 g3 g300  vdd gnd inv N='10*LAMBDA'
+
+* x61 p00  p00 vdd gnd inv N='10*LAMBDA'
+* x62 p100 p10  vdd gnd inv N='10*LAMBDA'
+* x63 p200 p20  vdd gnd inv N='10*LAMBDA'
+* x64 p300 p30  vdd gnd inv N='10*LAMBDA'
+
+* x65 p0 p00  vdd gnd inv N='10*LAMBDA'
+* x66 p1 p100  vdd gnd inv N='10*LAMBDA'
+* x67 p2 p200  vdd gnd inv N='10*LAMBDA'
+* x68 p3 p300  vdd gnd inv N='10*LAMBDA'
+
+x1000 clk clk_org vdd gnd inv N='20*LAMBDA'
+
+.tran 20n {30*Ton} {15*Ton}
+* .tran 20n  {15*Ton}
+
+.control
+* set hcopypscolor = 1 *White background for saving plots
+* set color0=b ** color0 is used to set the background of the plot (manual sec:17.7))
+* set color1=blue ** color1 is used to set the grid color of the plot (manual sec:17.7))
+
+run
+
+* plot v(pdr1)  4+v(c1)
+* plot v(p0) v(c0) 2+v(p1) 2+v(c1) 4+v(p2) 4+v(c2) 6+v(p3) 6+v(c3) 8+v(clk) 8+v(clk_org)
+* plot v(gen_1) 2+v(gen_2) 4+v(gen_3) 6+v(gen_4) 8+v(clock_in)
+* plot v(pdr1)  2+v(pdr2)  4+v(pdr3)  6+v(pdr4) 8+v(clock_in)
+* * plot v(c1) 2+v(c2)   4+v(c3)   6+v(c4) 8+v(clock_in) 
+* plot v(clk_org) 3+v(clock_in)
+* plot    v(gen_1) 3+v(prop_1) 7+v(carry_0) 10+v(pdr1) 13+v(clock_in)
+* plot v(pdr4)  v(c4) 4+v(clk_org)
+* plot    v(gen_2) 3+v(prop_2) 7+v(pdr1) 10+v(pdr2) 13+v(clock_in) 
+* plot 2+v(prop_1)
+* plot v(gen_1)
+* plot v(prop_2)
+* plot v(gen_2)
+* plot v(prop_3)
+* plot v(gen_3)
+* plot v(prop_4)
+* plot v(gen_4)
+* plot v(p0) 2+v(p1) 4+v(p2) 6+v(p3) 8+v(clk)
+* plot v(g0) 2+v(g1) 4+v(g2) 6+v(gen_4) 8+v(clock_in)
+* plot v(pdr1) 2+v(pdr2) 4+v(pdr3) 6+v(pdr4) 8+v(clock_in)
+* plot v(p0) v(clk) 2+v(p1) 2+v(clk) 4+v(p2) 4+v(clk) 6+v(p3) 6+v(clk) 
+* plot v(g0) v(clk) 2+v(g1) 2+v(clk) 4+v(g2) 4+v(clk) 6+v(g3) 6+v(clk)
+* plot v(c0bar) 2+v(c1bar) 4+v(c2bar) 6+v(c3bar) 8+v(clk)
+* plot v(c0) 2+v(c1) 4+v(c2) 6+v(c3) 8+v(clk)
+* plot v(a0) 2+v(a1) 4+v(a2) 6+v(a3) 8+v(clk)
+* plot v(b0) 2+v(b1) 4+v(b2) 6+v(b3) 8+v(clk)
+plot v(a0in) 2+v(a1in) 4+v(a2in) 6+v(a3in) 8+v(clk_org) v(a0) 2+v(a1) 4+v(a2) 6+v(a3) 
+plot v(b0in) 2+v(b1in) 4+v(b2in) 6+v(b3in) 8+v(clk_org) v(b0) 2+v(b1) 4+v(b2) 6+v(b3) 
+.endc

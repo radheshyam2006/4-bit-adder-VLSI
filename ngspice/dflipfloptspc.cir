@@ -1,0 +1,54 @@
+.include TSMC_180nm.txt
+.param SUPPLY=1.8
+.param LAMBDA=0.09u
+
+vdd vdd gnd DC 1.8
+
+.subckt nmos d g s b W='N'
+.param width_N={W}
+M1 d g s b CMOSN W={width_N} L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N}
++ AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+.ends nmos
+
+.subckt pmos d g s b W='P'
+.param width_P={W}
+M1 d g s b CMOSP W={width_P} L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P}
++ AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends pmos
+
+.subckt dff out d clk vdd gnd
+X1 m13 d vdd vdd pmos W='20*LAMBDA'
+* X2 m13 b vdd vdd pmos W='20*LAMBDA'
+X3 m34 clk m13 m13 pmos W='20*LAMBDA'
+X4 m34 d gnd gnd nmos W='10*LAMBDA'
+* X5 m45 b gnd gnd nmos W='10*LAMBDA'
+
+X6 m67 m34 vdd vdd pmos W='20*LAMBDA'
+X7 m78 clk m67 m67 pmos W='20*LAMBDA'
+X8 m78 m34 gnd gnd nmos W='10*LAMBDA'
+
+X9 m910 m78 vdd vdd pmos W='20*LAMBDA'
+X10 m910 clk m1011 m1011 nmos W='10*LAMBDA'
+X11 m1011 m78 gnd gnd nmos W='10*LAMBDA'
+
+X12 out m910 vdd vdd pmos W='20*LAMBDA'
+X13 out clk m1314 m1314 nmos W='10*LAMBDA'
+X14 m1314 m910 gnd gnd nmos W='10*LAMBDA'
+.ends dff
+
+V1 clk gnd pulse(0 1.8 80n 0 0 80n 160n)
+V2 a gnd pulse(0 1.8 10n 0 0 160n 320n)
+V3 b gnd pulse(0 1.8 15n 0 0 320n 640n)
+
+Xand out a clk vdd gnd dff
+
+.tran 0.1n 640ns
+.control
+run
+set hcopypscolor = 1
+set color0 = white
+set color1 = blue
+plot v(clk) v(a)+2  v(out)+4
+.endc

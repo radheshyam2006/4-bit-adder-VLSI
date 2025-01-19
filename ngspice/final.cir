@@ -1,0 +1,286 @@
+//dnininm
+.include TSMC_180nm.txt
+.param SUPPLY=1.8
+.param LAMBDA=0.09u
+
+vdd vdd gnd DC 1.8
+
+.subckt nmos d g s b W='N'
+.param width_N={W}
+M1 d g s b CMOSN W={width_N} L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N}
++ AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+.ends nmos
+
+.subckt pmos d g s b W='P'
+.param width_P={W}
+M1 d g s b CMOSP W={width_P} L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P}
++ AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends pmos
+
+.subckt inv out in vdd gnd N='a'
+.param width_N={N}
+.param width_P={2*width_N}
+M1      out       in      gnd     gnd  CMOSN   W={width_N}   L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N} AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+M2      out       in      vdd     vdd  CMOSP   W={width_P}   L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P} AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends inv
+
+.subckt dff out d clk vdd gnd
+x1 m23 d vdd vdd pmos W='20*LAMBDA'
+x2 m12 clk m23 m23 pmos W='20*LAMBDA'
+x3 m12 d gnd gnd nmos W='10*LAMBDA'
+
+x4 m56 clk vdd vdd pmos W='20*LAMBDA'
+x5 m56 m12 m45 m45 nmos W='10*LAMBDA'
+x6 m45 clk gnd gnd nmos W='10*LAMBDA'
+
+x7 m89 m56 vdd vdd pmos W='20*LAMBDA'
+x8 m89 clk m78 m78 nmos W='10*LAMBDA'
+x9 m78 m56 gnd gnd nmos W='10*LAMBDA'
+
+x10 out m89 vdd gnd inv N='10*LAMBDA'
+.ends dff
+
+.subckt and out a b bbar vdd gnd
+x1 a b out  gnd  nmos W='10*LAMBDA'
+x2 out bbar a vdd pmos W='20*LAMBDA'
+x3 out bbar gnd gnd nmos W='10*LAMBDA'
+.ends and
+
+.subckt xor out a b bbar vdd gnd
+x1 out b a vdd pmos W='20*LAMBDA'
+x2 a bbar out gnd nmos W='10*LAMBDA'
+x3 bbar a out gnd nmos W='10*LAMBDA'
+x4 out a b vdd pmos W='20*LAMBDA'
+.ends xor 
+
+* .param k=0.45u p=1.8u n=1.8u  //working 0.6n
+.param k=0.9u p=3.6u n=3.6u //working 0.6n
+* .param k=0.9u p=1.8u n=1.8u //working 0.6n
+* .param k=1.8u p=1.8u n=1.8u //working 0.6n
+* .param k=1.8u p=1.8u n=3.6u //working 0.6n notworking 0.4n
+* .param k=1.8u p=1.8u n=5.4u //working 0.6n notworking 0.4n
+* .param k=1.8u p=1.8u n=7.2u //working 0.6n notworking 0.4n
+* .param k=0.9u p=0.9u n=0.9u // not working 0.6n
+
+//c3bar
+x1 c3bar clk vdd vdd pmos W='p'u
+x2 c3bar p3 m23 m23 nmos  W='n'u
+x3 m23 p2 m34 m34 nmos    W='n'u
+x4 m34 p1 m45 m45 nmos    W='n'u
+x5 m45 p0 m56 m56 nmos    W='n'u
+x6 m56 cin m67 m67 nmos   W='n'u
+x7 m67 clk gnd gnd nmos   W='n'u
+x8 m45 g0 m67 m67 nmos    W='n'u
+x9 m34 g1 m67 m67 nmos    W='n'u
+x10 m23 g2 m67 m67 nmos   W='n'u
+x11 c3bar g3 m67 m67 nmos W='n'u
+//c2bar
+x12 c2bar clk vdd vdd pmos W='p'u
+x13 c2bar p2 n34 n34 nmos  W='n'u
+x14 n34 p1 n45 n45 nmos    W='n'u
+x15 n45 p0 n56 n56 nmos    W='n'u
+x16 n56 cin n67 n67 nmos   W='n'u
+x17 n67 clk gnd gnd nmos   W='n'u
+x18 n45 g0 n67 n67 nmos    W='n'u
+x19 n34 g1 n67 n67 nmos    W='n'u
+x20 c2bar g2 n67 n67 nmos  W='n'u
+//c1bar
+x21 c1bar clk vdd vdd pmos W='p'u
+x22 c1bar p1 o45 o45 nmos  W='n'u
+x23 o45 p0 o56 o56 nmos    W='n'u
+x24 o56 cin o67 o67 nmos   W='n'u
+x25 o67 clk gnd gnd nmos   W='n'u
+x26 o45 g0 o67 o67 nmos    W='n'u
+x27 c1bar g1 o67 o67 nmos  W='n'u
+//c0bar
+x28 c0bar clk vdd vdd pmos W='p'u
+x29 c0bar p0 p56 p56 nmos  W='n'u
+x30 p56 cin p67 p67 nmos   W='n'u
+x31 p67 clk gnd gnd nmos   W='n'u
+x33 c0bar g0 p67 p67 nmos  W='n'u
+//cobar inverter
+x34 c0 c0bar vdd gnd inv N='10*LAMBDA'
+x35 c1 c1bar vdd gnd inv N='10*LAMBDA'
+x36 c2 c2bar vdd gnd inv N='10*LAMBDA'
+x37 c3 c3bar vdd gnd inv N='10*LAMBDA'
+//keeper
+x39 c0bar c0 vdd vdd pmos W='k'u
+x40 c1bar c1 vdd vdd pmos W='k'u
+x41 c2bar c2 vdd vdd pmos W='k'u
+x42 c3bar c3 vdd vdd pmos W='k'u
+//flip flop
+x43 a0 a0in clk_org vdd gnd dff
+x44 a1 a1in clk_org vdd gnd dff
+x45 a2 a2in clk_org vdd gnd dff
+x46 a3 a3in clk_org vdd gnd dff
+
+x47 b0 b0in clk_org vdd gnd dff
+x48 b1 b1in clk_org vdd gnd dff
+x49 b2 b2in clk_org vdd gnd dff
+x50 b3 b3in clk_org vdd gnd dff
+x95 cinin cin clk_org vdd gnd dff
+//bbars
+x80 b0bar b0 vdd gnd inv N='10*LAMBDA'
+x81 b1bar b1 vdd gnd inv N='10*LAMBDA'
+x82 b2bar b2 vdd gnd inv N='10*LAMBDA'
+x83 b3bar b3 vdd gnd inv N='10*LAMBDA'
+//and gates
+x431 g0 a0 b0 b0bar vdd gnd and
+x441 g1 a1 b1 b1bar vdd gnd and
+x451 g2 a2 b2 b2bar vdd gnd and
+x461 g3 a3 b3 b3bar vdd gnd and
+//xor gates 1st level
+x471 p0 a0 b0 b0bar vdd gnd xor
+x481 p1 a1 b1 b1bar vdd gnd xor
+x491 p2 a2 b2 b2bar vdd gnd xor
+x501 p3 a3 b3 b3bar vdd gnd xor
+//clock_org bar
+x1000 clk clk_org vdd gnd inv N='20*LAMBDA'
+//cin bar
+x84 cinbar cin vdd gnd inv N='10*LAMBDA'
+//xor gates 2nd level
+x472 s0in p0 cin cinbar vdd gnd xor
+x482 s1in p1 c0 c0bar vdd gnd xor
+x492 s2in p2 c1 c1bar vdd gnd xor
+x502 s3in p3 c2 c2bar vdd gnd xor
+//dff second level
+x433 s0 s0in clk_org vdd gnd dff
+x443 s1 s1in clk_org vdd gnd dff
+x453 s2 s2in clk_org vdd gnd dff
+x463 s3 s3in clk_org vdd gnd dff
+x464 cout c3 clk_org vdd gnd dff
+//loadind output
+x90 s0bar s0 vdd gnd inv N='10*LAMBDA'
+x91 s1bar s1 vdd gnd inv N='10*LAMBDA'
+x92 s2bar s2 vdd gnd inv N='10*LAMBDA'
+x93 s3bar s3 vdd gnd inv N='10*LAMBDA'
+x94 coutbar cout vdd gnd inv N='10*LAMBDA'
+//transient analysis
+ 
+.param Ton=2n
+.param Tperiod={2*Ton}
+
+* V_a1 a0in 0 PWL(0ns 1.8 {Tperiod} 1.8 {Tperiod+0.1n} 0 {2*Tperiod} 0)
+* V_a2 a1in 0 PWL(0ns 0 {Tperiod} 0 {Tperiod+0.1n} 0 {2*Tperiod} 0)
+* V_a3 a2in 0 PWL(0ns 0 {Tperiod} 0 {Tperiod+0.1n} 1.8 {2*Tperiod} 1.8)
+* V_a4 a3in 0 PWL(0ns 1.8 {Tperiod} 1.8 {Tperiod+0.1n} 1.8 {2*Tperiod} 1.8)
+* V_b1 b0in 0 PWL(0ns 0 {Tperiod} 0 {Tperiod+0.1n} 1.8 {2*Tperiod} 1.8)
+* V_b2 b1in 0 PWL(0ns 1.8 {Tperiod} 1.8 {Tperiod+0.1n} 1.8 {2*Tperiod} 1.8)
+* V_b3 b2in 0 PWL(0ns 0 {Tperiod} 0 {Tperiod+0.1n} 0 {2*Tperiod} 0)
+* V_b4 b3in 0 PWL(0ns 1.8 {Tperiod} 1.8 {Tperiod+0.1n} 0 {2*Tperiod} 0)
+* V9 cinin 0 0
+
+V1 a0in 0 pulse(0 1.8 0 10p 10p {2*Ton} {4*Ton})
+v2 a1in 0 pulse(0 1.8 0 10p 10p {3*Ton} {6*Ton})
+v3 a2in 0 pulse(0 1.8 0 10p 10p {4*Ton} {8*Ton})
+v4 a3in 0 pulse(0 1.8 0 10p 10p {5*Ton} {10*Ton})
+V5 b0in 0  pulse(0 1.8 0 10p 10p {6*Ton} {12*Ton})
+v6 b1in 0  pulse(0 1.8 0 10p 10p {7*Ton} {14*Ton})
+v7 b2in 0  pulse(0 1.8 0 10p 10p {8*Ton} {16*Ton})
+v8 b3in 0  pulse(0 1.8 0 10p 10p {9*Ton} {18*Ton})
+V9 cinin 0 0
+
+* V1 p0 0 0
+* * * V1 p0 0 1.8
+
+* * v2 p1 0 0
+* v2 p1 0 1.8
+
+* * v3 p2 0 0
+* v3 p2 0 1.8
+
+* v4 p3 0 0
+* * v4 p3 0 1.8
+
+* * V5 g0 0 0
+* V5 g0 0 1.8
+
+* v6 g1 0 0
+* * * v6 g1 0 1.8
+
+* v7 g2 0 0
+* * v7 g2 0 1.8
+
+* * v8 g3 0 0
+* v8 g3 0 1.8
+
+* V9 cin 0 0
+
+V_clk_org clk_org 0 pulse(0 1.8 {0.3*Ton} 10p 10p {Ton} {Tperiod})
+
+
+.tran 0.05n {15*Ton+3n} 
+* .tran 0.05n {30*Ton+3n}  {15*Ton+3n}
+* .measure tran clk_c4_f trig V(clk_org) val=0.9 rise=2 targ v(q_c4) val=0.9 fall=1
+* .measure tran clk_s1_f trig V(clk_org) val=0.9 rise=2 targ v(q_s1) val=0.9 fall=1
+* .measure tran clk_s2_f trig V(clk_org) val=0.9 rise=2 targ v(q_s2) val=0.9 fall=1
+* .measure tran clk_s3_f trig V(clk_org) val=0.9 rise=2 targ v(q_s3) val=0.9 fall=1
+* .measure tran clk_s4_f trig V(clk_org) val=0.9 rise=2 targ v(q_s4) val=0.9 fall=1
+
+* .measure tran clk_s4_r trig V(clk_org) val=0.9 rise=3 targ v(q_s4) val=0.9 rise=1
+* .measure tran clk_s3_r trig V(clk_org) val=0.9 rise=3 targ v(q_s3) val=0.9 rise=1
+* .measure tran clk_s2_r trig V(clk_org) val=0.9 rise=3 targ v(q_s2) val=0.9 rise=1
+* .measure tran clk_s1_r trig V(clk_org) val=0.9 rise=3 targ v(q_s1) val=0.9 rise=1
+
+* .ic v(q_a1)=0
+* .ic v(q_a2)=0
+* .ic v(q_a3)=0
+* .ic v(q_a4)=0
+* .ic v(q_b1)=0
+* .ic v(q_b2)=0
+* .ic v(q_b3)=0
+* .ic v(q_b4)=0
+* .ic v(carry_0)=0
+* .ic v(c4)=0
+
+* .ic v(s1)=0
+* .ic v(s2)=0
+* .ic v(s3)=0
+* .ic v(s4)=0
+* .ic v(s1)=0
+* .ic v(s1)=0
+
+.control
+* set hcopypscolor = 1 *White background for saving plots
+* set color0=b ** color0 is used to set the background of the plot (manual sec:17.7))
+* set color1=blue ** color1 is used to set the grid color of the plot (manual sec:17.7))
+
+run
+* plot v(a1) 2+v(a2) 4+v(carry_0) 6+v(s1) 8+v(c1) 10+v(clock_in)
+* plot v(q_s1) 2+v(q_s2) 4+v(q_s3) 6+v(q_s4) 8+v(q_c4) 10+v(clk_org)
+* plot v(s1) 2+v(s2) 4+v(s3) 6+v(s4) 8+v(c4) 10+v(clk_org)
+* plot v(a1) v(b1) 2+v(a2) 2+v(b2) 4+v(a3) 4+v(b3) 6+v(a4) 6+v(b4) 8+v(clk_org)
+* plot v(a1) v(q_a1)  2+v(b1) 2+v(q_b1) 4+v(carry_0) 6+v(q_s1) 8+v(c1) 10+v(clk_org)
+* plot v(q_a2) 2+v(q_b2) 4+v(c1) 6+v(q_s2) 8+v(c2) 10+v(clk_org)
+* plot v(q_a3) 2+v(q_b3) 4+v(c2) 6+v(q_s3) 8+v(c3) 10+v(clk_org)
+* plot v(q_a4) 2+v(q_b4) 4+v(c3) 6+v(q_s4) 8+v(q_c4) 10+v(clk_org)
+* plot v(clk_org) 4+v(c4)
+* plot v(pdr1)  4+v(c1)
+* plot v(pdr1) v(c1) 2+v(pdr2) 2+v(c2) 4+v(pdr3) 4+v(c3) 6+v(pdr4) 6+v(c4) 8+v(clock_in) 8+v(clk_org)
+* plot v(gen_1) 2+v(gen_2) 4+v(gen_3) 6+v(gen_4) 8+v(clock_in)
+* plot v(pdr1)  2+v(pdr2)  4+v(pdr3)  6+v(pdr4) 8+v(clock_in)
+* * plot v(c1) 2+v(c2)   4+v(c3)   6+v(c4) 8+v(clock_in) 
+* plot v(clk_org) 3+v(clock_in)
+* plot    v(gen_1) 3+v(prop_1) 7+v(carry_0) 10+v(pdr1) 13+v(clock_in)
+* plot v(pdr4)  v(c4) 4+v(clk_org)
+* plot    v(gen_2) 3+v(prop_2) 7+v(pdr1) 10+v(pdr2) 13+v(clock_in) 
+* plot 2+v(prop_1)
+* plot v(gen_1)
+* plot v(prop_2)
+* plot v(gen_2)
+* plot v(prop_3)
+* plot v(gen_3)
+* plot v(prop_4)
+* * plot v(gen_4)
+* plot v(a0in) 2+v(a1in) 4+v(a2in) 6+v(a3in) 8+v(clk_org) 
+* plot v(b0in) 2+v(b1in) 4+v(b2in) 6+v(b3in) 8+v(clk_org) 
+plot v(s0) 2+v(s1) 4+v(s2) 6+v(s3) 8+v(cout) 10+v(clk_org)
+* plot v(s0) 2+v(s0in) 4+v(cinin) 6+v(p0) 8+v(cin) 10+v(clk_org)
+* plot v(c0bar) 2+v(c1bar) 4+v(c2bar) 6+v(c3bar) 8+v(clk)
+* plot v(c0) 2+v(c1) 4+v(c2) 6+v(c3) 8+v(clk)
+* plot v(s0in) 2+v(s1in) 4+v(s2in) 6+v(s3in) 8+v(c3) 10+v(clk)
+.endc

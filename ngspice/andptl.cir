@@ -1,0 +1,52 @@
+.include TSMC_180nm.txt
+.param SUPPLY=1.8
+.param LAMBDA=0.09u
+
+vdd vdd gnd DC 1.8
+
+.subckt nmos d g s b W='N'
+.param width_N={W}
+M1 d g s b CMOSN W={width_N} L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N}
++ AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+.ends nmos
+
+.subckt pmos d g s b W='P'
+.param width_P={W}
+M1 d g s b CMOSP W={width_P} L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P}
++ AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends pmos
+
+.subckt inv out in vdd gnd N='a'
+.param width_N={N}
+.param width_P={2*width_N}
+M1      out       in      gnd     gnd  CMOSN   W={width_N}   L={2*LAMBDA}
++ AS={5*width_N*LAMBDA} PS={10*LAMBDA+2*width_N} AD={5*width_N*LAMBDA} PD={10*LAMBDA+2*width_N}
+M2      out       in      vdd     vdd  CMOSP   W={width_P}   L={2*LAMBDA}
++ AS={5*width_P*LAMBDA} PS={10*LAMBDA+2*width_P} AD={5*width_P*LAMBDA} PD={10*LAMBDA+2*width_P}
+.ends inv
+
+
+.subckt and out a b bbar vdd gnd
+x1 a b out  gnd  nmos W='10*LAMBDA'
+x2 out bbar a vdd pmos W='20*LAMBDA'
+x3 out bbar gnd gnd nmos W='10*LAMBDA'
+.ends and
+
+
+
+V2 a gnd pulse(0 1.8 10n 0 0 160n 320n)
+V3 b gnd pulse(0 1.8 15n 0 0 320n 640n)
+
+x4 bbar b vdd gnd inv N='10*LAMBDA'
+Xand out a b bbar vdd gnd and
+
+.tran 0.1n 640ns
+.control
+run
+set hcopypscolor = 1
+set color0 = white
+set color1 = blue
+plot v(a)+2 v(b)+4 v(out)+6
+.endc
